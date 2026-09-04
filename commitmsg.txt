@@ -1,8 +1,0 @@
-﻿修复 Windows 原子 CAS 绑定；修正 chanlun 测试与 Pangu 资源警告
-
-- scheduler/atomic.py: 在 Windows 上改为使用可执行机器码封装 CAS，兼容 x86/x64，保留 libatomic 路径以支持 Unix。
-- chanlun/test_stroke_vulnerabilities.py: 将 V07 测试调整为稳定性回归（断言首笔和笔数不变），并更新审计描述。
-- 盘古/test_pangu_v012.py: 使用上下文管理器修复文件未关闭的 ResourceWarning。
-- tests/test_distributed_scheduler.py: 切换到 unittest 风格并增加 Windows 原子 CAS 冒烟测试。
-
-Co-authored-by: Copilot App <223556219+Copilot@users.noreply.github.com>
