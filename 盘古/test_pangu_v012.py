@@ -185,14 +185,16 @@ class TestRulePersistence(unittest.TestCase):
         filepath = os.path.join(self.tmpdir, "rules.super")
         count = self.kb.save_rules(filepath)
         self.assertGreater(count, 0)
-        content = open(filepath, encoding="utf-8").read()
+        with open(filepath, encoding="utf-8") as rule_file:
+            content = rule_file.read()
         self.assertIn("q", content)
 
     def test_save_filtered_by_source(self):
         filepath = os.path.join(self.tmpdir, "user.super")
         count = self.kb.save_rules(filepath, source_filter="user_learned")
         self.assertEqual(count, 1)
-        content = open(filepath, encoding="utf-8").read()
+        with open(filepath, encoding="utf-8") as rule_file:
+            content = rule_file.read()
         self.assertIn("q", content)
         self.assertNotIn("r(", content)
 

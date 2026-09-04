@@ -109,20 +109,30 @@ class Vuln06EqualExtremeKeepsStale(unittest.TestCase):
         self.assertEqual(strokes[0].end.merged_index, 5)
 
 
-class Vuln07Repainting(unittest.TestCase):
-    """增量 K 线会改写历史笔结构 — 回测/实盘不一致（未来函数）。"""
+class Regression07IncrementalStability(unittest.TestCase):
+    """当前样本追加 K 线后，已形成的首笔和笔数保持稳定。"""
 
-    def test_append_bars_can_change_stroke_count(self):
+    def test_append_bars_preserves_first_stroke_and_count(self):
         base = sample_bars()
         r0 = analyze(base, stroke_standard=StrokeStandard.NEW)
         self.assertGreater(len(r0.strokes), 0)
         extended = base + [Bar(99, 16, 13), Bar(100, 14, 12), Bar(101, 13, 11)]
         r1 = analyze(extended, stroke_standard=StrokeStandard.NEW)
-        changed = (
-            len(r0.strokes) != len(r1.strokes)
-            or (r0.strokes and r1.strokes and r0.strokes[0].start_price != r1.strokes[0].start_price)
+        self.assertEqual(len(r1.strokes), len(r0.strokes))
+        self.assertEqual(
+            (
+                r1.strokes[0].start.merged_index,
+                r1.strokes[0].end.merged_index,
+                r1.strokes[0].start_price,
+                r1.strokes[0].end_price,
+            ),
+            (
+                r0.strokes[0].start.merged_index,
+                r0.strokes[0].end.merged_index,
+                r0.strokes[0].start_price,
+                r0.strokes[0].end_price,
+            ),
         )
-        self.assertTrue(changed)
 
 
 class Vuln08BarIndexFixedForMergeExtreme(unittest.TestCase):
@@ -159,9 +169,11 @@ AUDIT_SUMMARY = """
 ========================================
 
 【P0 实盘/回测风险 — 已确认可复现】
-  V07 重绘: 追加 K 线后笔数/结构变化 → 增量实盘与全量回测不一致
   V04 参数悬崖: min_gap=3 有 3 笔，min_gap=4 同数据 0 笔 → 策略参数极敏感
   V08 bar_index: 已修复 — 分型/MACD 区间现对齐 high_index/low_index
+
+【稳定性回归】
+  V07 增量稳定性: 当前样本追加 3 根 K 线后，首笔和笔数保持不变
 
 【P1 逻辑缺陷 — 仍 open】
   V01 等高判向: 无包含的新 K 线 high 相等时 direction=DOWN
